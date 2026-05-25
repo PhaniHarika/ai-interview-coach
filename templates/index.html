@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Interview Coach</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#0d0b1e;color:#fff;min-height:100vh;display:flex}
+
+.sidebar{width:260px;min-height:100vh;background:#13103a;border-right:1px solid rgba(255,255,255,0.06);padding:24px 16px;display:flex;flex-direction:column;gap:6px;flex-shrink:0;position:fixed;height:100vh;overflow-y:auto}
+.logo{display:flex;align-items:center;gap:12px;padding:8px;margin-bottom:16px}
+.logo-icon{width:44px;height:44px;background:linear-gradient(135deg,#7F77DD,#D4537E);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.logo-text{font-size:16px;font-weight:700}
+.logo-sub{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px}
+.new-btn{background:linear-gradient(135deg,#7F77DD,#D4537E);border:none;color:#fff;border-radius:12px;padding:13px 16px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-bottom:12px;display:flex;align-items:center;gap:8px;justify-content:center}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;cursor:pointer;font-size:14px;color:rgba(255,255,255,0.5);transition:all 0.2s}
+.nav-item:hover{background:rgba(255,255,255,0.06);color:#fff}
+.nav-item.active{background:rgba(127,119,221,0.15);color:#C4C0F0}
+.nav-icon{font-size:17px;width:22px;text-align:center}
+.sidebar-bottom{margin-top:auto;padding-top:16px}
+.streak-card{background:rgba(255,255,255,0.05);border-radius:14px;padding:16px}
+.streak-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.streak-label{font-size:13px;font-weight:600}
+.streak-sub{font-size:12px;color:rgba(255,255,255,0.4)}
+.pbar{height:5px;background:rgba(255,255,255,0.1);border-radius:3px;margin:8px 0}
+.pfill{height:100%;background:linear-gradient(90deg,#7F77DD,#D4537E);border-radius:3px;width:40%;transition:width 0.5s}
+.keep{font-size:12px;color:rgba(255,255,255,0.45)}
+
+.main{flex:1;margin-left:260px;padding:40px 48px;min-height:100vh}
+.page{display:none}
+.page.active{display:block}
+
+/* Setup page */
+.top-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:8px 16px;font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:28px}
+.online-dot{width:7px;height:7px;background:#1D9E75;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.hero-title{font-size:50px;font-weight:800;line-height:1.15;margin-bottom:12px}
+.hero-grad{background:linear-gradient(135deg,#9F99E8,#D4537E);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:17px;color:rgba(255,255,255,0.45);margin-bottom:40px}
+
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+.fcard{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:22px;display:flex;align-items:flex-start;gap:16px;cursor:pointer;transition:all 0.25s}
+.fcard:hover{background:rgba(255,255,255,0.08);border-color:rgba(127,119,221,0.35);transform:translateY(-3px)}
+.fcard-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.fcard-title{font-size:15px;font-weight:600;margin-bottom:5px}
+.fcard-sub{font-size:13px;color:rgba(255,255,255,0.4);line-height:1.5}
+.arrow{margin-left:auto;align-self:center;color:rgba(255,255,255,0.2);font-size:18px}
+
+.setup-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:22px;padding:36px;position:relative;overflow:hidden}
+.setup-card::after{content:'📋';position:absolute;top:-10px;right:24px;font-size:110px;opacity:0.08;pointer-events:none}
+.sc-title{font-size:22px;font-weight:700;margin-bottom:6px}
+.sc-sub{font-size:14px;color:rgba(255,255,255,0.4);margin-bottom:32px}
+
+.flabel{font-size:14px;font-weight:500;color:rgba(255,255,255,0.75);margin-bottom:10px;display:block}
+.finput{width:100%;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px 18px;font-size:15px;color:#fff;font-family:'Inter',sans-serif;outline:none;transition:all 0.2s}
+.finput::placeholder{color:rgba(255,255,255,0.25)}
+.finput:focus{border-color:rgba(127,119,221,0.6);background:rgba(127,119,221,0.06)}
+
+.form2col{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}
+.slrow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.slval{font-size:26px;font-weight:800;color:#9F99E8}
+.slider{width:100%;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;outline:none;-webkit-appearance:none;cursor:pointer}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#7F77DD,#9F99E8);cursor:pointer;box-shadow:0 0 12px rgba(127,119,221,0.6)}
+
+.focus-area{margin-bottom:32px}
+.focus-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.focus-pill{background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.2s;font-size:13px;font-weight:500;color:rgba(255,255,255,0.55)}
+.focus-pill.on{background:rgba(127,119,221,0.15);border-color:rgba(127,119,221,0.5);color:#C4C0F0}
+.focus-pill:hover{background:rgba(255,255,255,0.09)}
+.focus-pill .fpi{display:block;font-size:22px;margin-bottom:6px}
+
+.start-btn{width:100%;background:linear-gradient(135deg,#7F77DD,#534AB7);border:none;color:#fff;border-radius:16px;padding:18px;font-size:17px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 30px rgba(127,119,221,0.4);transition:all 0.3s;letter-spacing:0.3px}
+.start-btn:hover{box-shadow:0 14px 40px rgba(127,119,221,0.6);transform:translateY(-2px)}
+.start-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+
+.footrow{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}
+.fbadge{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px}
+.fbi{width:40px;height:40px;background:rgba(255,255,255,0.06);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.fbt{font-size:13px;font-weight:600;margin-bottom:2px}
+.fbs{font-size:12px;color:rgba(255,255,255,0.35)}
+
+/* Interview page */
+.progress-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.prog-label{font-size:13px;color:rgba(255,255,255,0.45)}
+.prog-num{font-size:14px;font-weight:600}
+.prog-bar{height:6px;background:rgba(255,255,255,0.1);border-radius:3px;margin-bottom:36px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#7F77DD,#D4537E);border-radius:3px;transition:width 0.5s}
+
+.q-num{font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:12px}
+.q-title{font-size:30px;font-weight:700;margin-bottom:32px;line-height:1.3}
+
+.qcard{background:linear-gradient(135deg,rgba(127,119,221,0.12),rgba(83,74,183,0.08));border:1.5px solid rgba(127,119,221,0.3);border-radius:20px;padding:28px;margin-bottom:28px}
+.qcard-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:12px}
+.qcard-text{font-size:19px;font-weight:500;line-height:1.65;color:#fff}
+.qcard-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chip{background:rgba(127,119,221,0.15);border:1px solid rgba(127,119,221,0.3);border-radius:20px;padding:5px 14px;font-size:12px;color:#C4C0F0}
+
+.ans-label{font-size:15px;font-weight:500;color:rgba(255,255,255,0.75);margin-bottom:12px;display:block}
+.ans-input{width:100%;background:rgba(255,255,255,0.06);border:1.5px solid rgba(127,119,221,0.35);border-radius:16px;padding:18px;font-size:15px;color:#fff;font-family:'Inter',sans-serif;outline:none;resize:vertical;min-height:180px;line-height:1.7;transition:all 0.2s}
+.ans-input::placeholder{color:rgba(255,255,255,0.25)}
+.ans-input:focus{border-color:rgba(127,119,221,0.65);background:rgba(127,119,221,0.06)}
+
+.btn-row{display:flex;gap:12px;margin-top:24px}
+.btn-primary{flex:1;background:linear-gradient(135deg,#7F77DD,#534AB7);border:none;color:#fff;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(127,119,221,0.4);transition:all 0.3s}
+.btn-primary:hover{box-shadow:0 10px 30px rgba(127,119,221,0.6);transform:translateY(-2px)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-skip{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.55);border-radius:14px;padding:16px 24px;font-size:15px;font-weight:500;cursor:pointer;transition:all 0.2s}
+.btn-skip:hover{background:rgba(255,255,255,0.1);color:#fff}
+
+/* Feedback page */
+.fb-header{text-align:center;margin-bottom:36px}
+.fb-icon{font-size:52px;margin-bottom:12px}
+.fb-title{font-size:32px;font-weight:800;margin-bottom:6px}
+.fb-sub{font-size:14px;color:rgba(255,255,255,0.4)}
+
+.rcard{border-radius:18px;padding:24px;margin-bottom:16px}
+.rc-purple{background:linear-gradient(135deg,rgba(127,119,221,0.12),rgba(83,74,183,0.08));border:1.5px solid rgba(127,119,221,0.3)}
+.rc-teal{background:rgba(29,158,117,0.08);border:1.5px solid rgba(29,158,117,0.25)}
+.rc-pink{background:rgba(212,83,126,0.08);border:1.5px solid rgba(212,83,126,0.25)}
+.rlabel{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:10px;display:block}
+.rtext{font-size:15px;line-height:1.75;color:rgba(255,255,255,0.88)}
+
+/* Summary page */
+.sum-header{text-align:center;margin-bottom:36px}
+.sum-icon{font-size:64px;margin-bottom:16px}
+.sum-title{font-size:36px;font-weight:800;margin-bottom:8px}
+.sum-sub{font-size:15px;color:rgba(255,255,255,0.4)}
+.sum-card{background:linear-gradient(135deg,rgba(127,119,221,0.1),rgba(83,74,183,0.07));border:1.5px solid rgba(127,119,221,0.25);border-radius:20px;padding:28px;margin-bottom:28px}
+.qa-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:20px;margin-bottom:12px;cursor:pointer;transition:all 0.2s}
+.qa-item:hover{background:rgba(255,255,255,0.07)}
+.qa-q{font-size:14px;font-weight:600;margin-bottom:0;color:rgba(255,255,255,0.9)}
+.qa-preview{font-size:13px;color:rgba(255,255,255,0.35);margin-top:4px}
+.qa-expanded{display:none;margin-top:16px;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px}
+.qa-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:6px}
+.qa-text{font-size:14px;color:rgba(255,255,255,0.75);line-height:1.6;margin-bottom:16px}
+
+/* Loading */
+.loading{display:none;text-align:center;padding:60px 20px}
+.loading.show{display:block}
+.spinner{width:48px;height:48px;border:3px solid rgba(127,119,221,0.2);border-top-color:#7F77DD;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-text{font-size:16px;color:rgba(255,255,255,0.55);margin-top:8px}
+
+/* Toast */
+.toast{position:fixed;bottom:28px;right:28px;background:#1a1730;border:1px solid rgba(127,119,221,0.4);border-radius:14px;padding:14px 20px;font-size:14px;color:#fff;transform:translateY(80px);opacity:0;transition:all 0.3s;z-index:9999}
+.toast.show{transform:translateY(0);opacity:1}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fadein{animation:fadeUp 0.4s ease forwards}
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-260px); transition: transform 0.3s ease; }
+  .main { margin-left: 0 !important; padding: 40px 24px; }
+  #hamburger { display: block !important; }
+}
+.sidebar { transition: transform 0.3s ease; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🎯</div>
+    <div>
+      <div class="logo-text">Interview Coach</div>
+      <div class="logo-sub">Practice smart. Win strong.</div>
+    </div>
+  </div>
+  <div class="nav-item active" id="nav-setup" onclick="goSetup()"><span class="nav-icon">🏠</span> Dashboard</div>
+<div class="nav-item" id="nav-interview" onclick="showToast('Start a session first!')"><span class="nav-icon">🎤</span> Ask & Answer</div>
+<div class="nav-item" id="nav-feedback" onclick="showToast('Start a session first!')"><span class="nav-icon">🧠</span> AI Feedback</div>
+<div class="nav-item" onclick="showComingSoon('Track Progress')"><span class="nav-icon">📊</span> Track Progress</div>
+<div class="nav-item" onclick="showComingSoon('Reports')"><span class="nav-icon">📋</span> Reports</div>
+<div class="nav-item" onclick="showComingSoon('Settings')"><span class="nav-icon">⚙️</span> Settings</div>
+  <div class="sidebar-bottom">
+    <div class="streak-card">
+      <div class="streak-row"><span>🔥</span><div><div class="streak-label">Daily Goal</div><div class="streak-sub" id="session-count">0 / 5 sessions</div></div></div>
+      <div class="pbar"><div class="pfill" id="session-bar" style="width:0%"></div></div>
+      <div class="keep">Keep going! You're doing great 💪</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+    <button onclick="toggleSidebar()" style="
+  position:fixed;top:20px;left:20px;z-index:1000;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:10px;padding:10px 12px;
+  color:white;font-size:18px;cursor:pointer;
+  display:none;
+" id="hamburger">☰</button>
+
+  <!-- SETUP PAGE -->
+  <div class="page active fadein" id="page-setup">
+    <div class="top-badge"><span class="online-dot"></span> Your AI Powered Interview Partner</div>
+    <div class="hero-title"><span class="hero-grad">AI Interview</span><br>Coach ✦</div>
+    <div class="hero-sub">Realistic practice. Personalized feedback. Professional growth.</div>
+
+    <div class="fgrid">
+      <div class="fcard"><div class="fcard-icon" style="background:rgba(127,119,221,0.18)">🎤</div><div><div class="fcard-title">Ask & Answer</div><div class="fcard-sub">Practice HR, Technical, and Behavioral questions.</div></div><div class="arrow">→</div></div>
+      <div class="fcard"><div class="fcard-icon" style="background:rgba(29,158,117,0.18)">🧠</div><div><div class="fcard-title">AI Feedback</div><div class="fcard-sub">Get detailed feedback and improve with AI insights.</div></div><div class="arrow">→</div></div>
+      <div class="fcard"><div class="fcard-icon" style="background:rgba(239,159,39,0.18)">📈</div><div><div class="fcard-title">Track Progress</div><div class="fcard-sub">Monitor performance and track your improvement.</div></div><div class="arrow">→</div></div>
+    </div>
+
+    <div class="setup-card">
+      <div class="sc-title">✦ Set Up Your Interview</div>
+      <div class="sc-sub">Tell us about your interview and we'll personalize your experience.</div>
+
+      <div style="margin-bottom:28px">
+        <label class="flabel">What role are you interviewing for?</label>
+        <input class="finput" type="text" id="role-input" placeholder="e.g. ML Engineer Intern, Data Science Intern, SDE Intern..."/>
+      </div>
+
+      <div class="form2col">
+        <div>
+          <label class="flabel">Number of Questions</label>
+          <div class="slrow">
+            <span style="font-size:13px;color:rgba(255,255,255,0.35)">3</span>
+            <span class="slval" id="q-display">5</span>
+            <span style="font-size:13px;color:rgba(255,255,255,0.35)">10</span>
+          </div>
+          <input class="slider" type="range" min="3" max="10" value="5" id="q-slider" oninput="document.getElementById('q-display').textContent=this.value"/>
+        </div>
+        <div>
+          <label class="flabel">Difficulty</label>
+          <select class="finput" id="difficulty" style="cursor:pointer">
+            <option value="Entry Level">Entry Level (Intern)</option>
+            <option value="Mid Level">Mid Level</option>
+            <option value="Senior Level">Senior Level</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="focus-area">
+        <label class="flabel">Focus Area <span style="color:rgba(255,255,255,0.3);font-weight:400">(Select one or more)</span></label>
+        <div class="focus-grid">
+          <div class="focus-pill on" onclick="this.classList.toggle('on')"><span class="fpi">💻</span>Technical</div>
+          <div class="focus-pill on" onclick="this.classList.toggle('on')"><span class="fpi">🤝</span>Behavioral</div>
+          <div class="focus-pill" onclick="this.classList.toggle('on')"><span class="fpi">👥</span>HR</div>
+          <div class="focus-pill" onclick="this.classList.toggle('on')"><span class="fpi">🏗️</span>System Design</div>
+        </div>
+      </div>
+
+      <button class="start-btn" id="start-btn" onclick="startInterview()">🚀 Start Interview Session →</button>
+    </div>
+
+    <div class="footrow" style="margin-top:24px">
+      <div class="fbadge"><div class="fbi">🔒</div><div><div class="fbt">100% Safe & Private</div><div class="fbs">Your data is secure</div></div></div>
+      <div class="fbadge"><div class="fbi">⚡</div><div><div class="fbt">AI Powered</div><div class="fbs">Groq LLaMA 3.3 70B</div></div></div>
+      <div class="fbadge"><div class="fbi">🎯</div><div><div class="fbt">Personalized</div><div class="fbs">Tailored for your goals</div></div></div>
+    </div>
+  </div>
+
+  <!-- INTERVIEW PAGE -->
+  <div class="page fadein" id="page-interview">
+    <div class="progress-header">
+      <span class="prog-label" id="prog-label">Question 1 of 5</span>
+      <span class="prog-num" id="prog-role"></span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+
+    <div class="q-num" id="q-num">QUESTION 1</div>
+    <div class="q-title" id="q-title">Loading your question...</div>
+
+    <div class="qcard">
+      <div class="qcard-label">❓ YOUR QUESTION</div>
+      <div class="qcard-text" id="q-text">Loading...</div>
+      <div class="qcard-chips">
+        <span class="chip" id="q-chip-role">Role</span>
+        <span class="chip">Take your time</span>
+        <span class="chip" id="q-chip-diff">Entry Level</span>
+      </div>
+    </div>
+
+    <label class="ans-label">✍️ Your Answer</label>
+    <textarea class="ans-input" id="answer-input" placeholder="Think it through... Type your best answer here. There's no rush — quality matters more than speed."></textarea>
+
+    <div class="btn-row">
+      <button class="btn-primary" id="submit-btn" onclick="submitAnswer()">⚡ Submit & Get AI Feedback</button>
+      <button class="btn-skip" onclick="skipQuestion()">Skip →</button>
+    </div>
+  </div>
+
+  <!-- FEEDBACK PAGE -->
+  <div class="page fadein" id="page-feedback">
+    <div class="fb-header">
+      <div class="fb-icon">📊</div>
+      <div class="fb-title" id="fb-title">Feedback</div>
+      <div class="fb-sub" id="fb-sub"></div>
+    </div>
+
+    <div class="rcard rc-purple">
+      <span class="rlabel">❓ QUESTION</span>
+      <div class="rtext" id="fb-question"></div>
+    </div>
+    <div class="rcard rc-teal">
+      <span class="rlabel">💬 YOUR ANSWER</span>
+      <div class="rtext" id="fb-answer"></div>
+    </div>
+    <div class="rcard rc-pink">
+      <span class="rlabel">🤖 AI FEEDBACK</span>
+      <div class="rtext" id="fb-feedback"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" id="next-btn" onclick="nextQuestion()">Next Question →</button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div class="load-text" id="load-text">Generating questions...</div>
+  </div>
+
+  <!-- SUMMARY PAGE -->
+  <div class="page fadein" id="page-summary">
+    <div class="sum-header">
+      <div class="sum-icon">🏆</div>
+      <div class="sum-title">Interview Complete!</div>
+      <div class="sum-sub">Here's your full performance report</div>
+    </div>
+
+    <div class="sum-card">
+      <span class="rlabel" id="sum-role-label">PERFORMANCE REPORT</span>
+      <div class="rtext" id="sum-text">Loading...</div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:18px;font-weight:700;margin-bottom:16px">📝 All Questions & Answers</div>
+      <div id="qa-list"></div>
+    </div>
+
+    <button class="btn-primary" onclick="goSetup()" style="max-width:300px;margin:0 auto;display:flex">🔄 Practice Again</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let state = {
+  role: '', questions: [], answers: [], feedbacks: [],
+  currentQ: 0, totalQ: 0, difficulty: 'Entry Level'
+};
+
+function showPage(id) {
+  document.querySelectorAll('.page,.loading').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function setNav(active) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(active)?.classList.add('active');
+}
+
+function goSetup() {
+  state = { role:'', questions:[], answers:[], feedbacks:[], currentQ:0, totalQ:0, difficulty:'Entry Level' };
+  showPage('page-setup');
+  setNav('nav-setup');
+}
+
+async function startInterview() {
+  const role = document.getElementById('role-input').value.trim();
+  if (!role) { showToast('⚠️ Please enter a role first!'); return; }
+
+  const numQ = parseInt(document.getElementById('q-slider').value);
+  const difficulty = document.getElementById('difficulty').value;
+  const focusPills = document.querySelectorAll('.focus-pill.on');
+  const focusAreas = [...focusPills].map(p => p.textContent.trim().replace(/[^\w\s]/g,'').trim());
+  if (!focusAreas.length) { showToast('⚠️ Select at least one focus area!'); return; }
+
+  state.role = role;
+  state.difficulty = difficulty;
+  state.totalQ = numQ;
+
+  document.getElementById('start-btn').disabled = true;
+  showPage('loading');
+  document.getElementById('load-text').textContent = '✨ Generating your personalized questions...';
+
+  try {
+    const res = await fetch('/generate-questions', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ role: `${role} (${difficulty})`, num_questions: numQ, focus_areas: focusAreas })
+    });
+    const data = await res.json();
+    state.questions = data.questions;
+    state.currentQ = 0;
+    updateSessionProgress();
+    showQuestion();
+  } catch(e) {
+    showToast('❌ Error generating questions. Check your API key.');
+    showPage('page-setup');
+  }
+  document.getElementById('start-btn').disabled = false;
+}
+
+function showQuestion() {
+  const q = state.questions[state.currentQ];
+  const idx = state.currentQ;
+  const total = state.questions.length;
+  const pct = (idx / total) * 100;
+
+  document.getElementById('prog-label').textContent = `Question ${idx+1} of ${total}`;
+  document.getElementById('prog-role').textContent = state.role;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('q-num').textContent = `QUESTION ${idx+1} OF ${total}`;
+  document.getElementById('q-title').textContent = `Question ${idx+1}`;
+  document.getElementById('q-text').textContent = q;
+  document.getElementById('q-chip-role').textContent = state.role;
+  document.getElementById('q-chip-diff').textContent = state.difficulty;
+  document.getElementById('answer-input').value = '';
+  document.getElementById('submit-btn').disabled = false;
+
+  setNav('nav-interview');
+  showPage('page-interview');
+}
+
+async function submitAnswer() {
+  const answer = document.getElementById('answer-input').value.trim();
+  if (!answer) { showToast('⚠️ Please write an answer first!'); return; }
+
+  document.getElementById('submit-btn').disabled = true;
+  showPage('loading');
+  document.getElementById('load-text').textContent = '🧠 Analyzing your answer...';
+
+  try {
+    const res = await fetch('/get-feedback', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ role: state.role, question: state.questions[state.currentQ], answer })
+    });
+    const data = await res.json();
+    state.answers.push(answer);
+    state.feedbacks.push(data.feedback);
+    showFeedback(data.feedback, answer);
+  } catch(e) {
+    showToast('❌ Error getting feedback.');
+    showPage('page-interview');
+    document.getElementById('submit-btn').disabled = false;
+  }
+}
+
+function showFeedback(feedback, answer) {
+  const idx = state.currentQ;
+  const total = state.questions.length;
+  document.getElementById('fb-title').textContent = `Feedback — Q${idx+1} of ${total}`;
+  document.getElementById('fb-sub').textContent = state.role;
+  document.getElementById('fb-question').textContent = state.questions[idx];
+  document.getElementById('fb-answer').textContent = answer;
+  document.getElementById('fb-feedback').innerHTML = feedback.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  const isLast = idx + 1 >= total;
+  document.getElementById('next-btn').textContent = isLast ? '🏁 See Final Report →' : `Next Question (${idx+2}/${total}) →`;
+  setNav('nav-feedback');
+  showPage('page-feedback');
+}
+
+async function nextQuestion() {
+  state.currentQ++;
+  if (state.currentQ >= state.questions.length) {
+    showPage('loading');
+    document.getElementById('load-text').textContent = '✨ Generating your performance report...';
+    try {
+      const pairs = state.questions.map((q,i) => ({question:q, answer:state.answers[i]||'(Skipped)'}));
+      const res = await fetch('/get-summary', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({role:state.role, qa_pairs:pairs})
+      });
+      const data = await res.json();
+      showSummary(data.summary);
+    } catch(e) {
+      showToast('❌ Error generating summary.');
+      showPage('page-summary');
+    }
+  } else {
+    showQuestion();
+  }
+}
+
+function skipQuestion() {
+  state.answers.push('(Skipped)');
+  state.feedbacks.push('Question was skipped.');
+  state.currentQ++;
+  if (state.currentQ >= state.questions.length) {
+    goSetup();
+  } else {
+    showQuestion();
+  }
+}
+
+function showSummary(summary) {
+  document.getElementById('sum-role-label').textContent = `PERFORMANCE REPORT · ${state.role.toUpperCase()}`;
+  document.getElementById('sum-text').innerHTML = summary.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+
+  const list = document.getElementById('qa-list');
+  list.innerHTML = '';
+  state.questions.forEach((q,i) => {
+    const div = document.createElement('div');
+    div.className = 'qa-item';
+    div.innerHTML = `
+      <div class="qa-q">Q${i+1}: ${q.substring(0,80)}${q.length>80?'...':''}</div>
+      <div class="qa-preview">${(state.answers[i]||'Skipped').substring(0,60)}...</div>
+      <div class="qa-expanded" id="qa-exp-${i}">
+        <div class="qa-label">YOUR ANSWER</div>
+        <div class="qa-text">${state.answers[i]||'Skipped'}</div>
+        <div class="qa-label">AI FEEDBACK</div>
+        <div class="qa-text">${(state.feedbacks[i]||'').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>
+      </div>`;
+    div.onclick = () => {
+      const exp = document.getElementById(`qa-exp-${i}`);
+      exp.style.display = exp.style.display === 'block' ? 'none' : 'block';
+    };
+    list.appendChild(div);
+  });
+
+  showPage('page-summary');
+}
+
+function updateSessionProgress() {
+  const sessions = (parseInt(localStorage.getItem('sessions')||0) + 1);
+  localStorage.setItem('sessions', sessions);
+  const pct = Math.min((sessions/5)*100, 100);
+  document.getElementById('session-count').textContent = `${Math.min(sessions,5)} / 5 sessions`;
+  document.getElementById('session-bar').style.width = pct + '%';
+}
+// Sidebar toggle
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const main = document.querySelector('.main');
+  sidebar.style.transform = sidebar.style.transform === 'translateX(-260px)' ? 'translateX(0)' : 'translateX(-260px)';
+  main.style.marginLeft = main.style.marginLeft === '0px' ? '260px' : '0px';
+}
+
+// Page placeholders
+function showComingSoon(page) {
+  showToast(`${page} coming soon! 🚀`);
+}
+</script>
+</body>
+</html>
