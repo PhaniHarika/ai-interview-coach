@@ -8,7 +8,9 @@ import uvicorn
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+import os
+if os.path.exists("static") and os.listdir("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class RoleRequest(BaseModel):
     role: str
@@ -29,7 +31,7 @@ async def home(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="index.html"
-    )
+    ) 
 
 @app.post("/generate-questions")
 async def api_generate_questions(data: RoleRequest):
